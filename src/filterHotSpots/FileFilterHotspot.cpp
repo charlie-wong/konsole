@@ -71,7 +71,7 @@ void FileFilterHotSpot::activate(QObject *)
     // - grep with line numbers: "path/to/some/file:123:"
     // - compiler errors with line/column numbers: "/path/to/file.cpp:123:123:"
     // - ctest failing unit tests: "/path/to/file(204)"
-    const auto re(QRegularExpression(QStringLiteral(R"foo((?:[:\(]?(\d+)(?::|\)\]))(?:(\d+):)?$)foo")));
+    const auto re(QRegularExpression(QStringLiteral(R"foo((?:[:\(]?(\d+)(?::?|\)\]))(?:(\d+):)?$)foo")));
     QRegularExpressionMatch match = re.match(_filePath);
     if (match.hasMatch()) {
         // The file path without the ":123" ... etc bits
@@ -102,6 +102,8 @@ void FileFilterHotSpot::activate(QObject *)
 
         editorCmd.replace(QLatin1String("PATH"), path);
 
+        qCDebug(KonsoleDebug) << "editorCmd:" << editorCmd;
+
         KService::Ptr service(new KService(QString(), editorCmd, QString()));
         // ApplicationLauncherJob is better at reporting errors to the user than
         // CommandLauncherJob; no need to call job->setUrls() because the url is
@@ -124,7 +126,10 @@ void FileFilterHotSpot::activate(QObject *)
 
     // There was no match, i.e. regular url "path/to/file", open it with
     // the system default editor
-    openUrl(_filePath);
+    // In case the regex above didn't match for any reason, clean up the file path
+    QString path(_filePath);
+    path.remove(QRegularExpression(QStringLiteral(R"foo((:\d+[:]?$))foo"), QRegularExpression::DontCaptureOption));
+    openUrl(path);
 }
 
 

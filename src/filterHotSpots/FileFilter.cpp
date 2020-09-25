@@ -72,12 +72,10 @@ FileFilter::FileFilter(Session *session) :
             //
             // ([^\n/\[]/) to not match "https://", and urls starting with "[" are matched by the
             // next | branch (ctest stuff)
-            + QStringLiteral(R"RX(|([^\n/\[]/)?[\p{L}\w%1]+(:\d+:)?(\d+:)?)RX").arg(wordCharacters)
+            + QStringLiteral(R"RX(|([^\n\s/\[]/)?[\p{L}\w%1]+(:\d+)?(:\d+:)?)RX").arg(wordCharacters)
             // - ctest error output: "[/path/to/file(123)]"
             + QStringLiteral(R"RX(|\[[/\w%1]+\(\d+\)\])RX").arg(wordCharacters),
         QRegularExpression::DontCaptureOption
-//         | QRegularExpression::MultilineOption // this is needed so that '^' matches the beginning of
-                                              // each line in the text
     );
     setRegExp(re);
 }

@@ -20,6 +20,9 @@
 
 #include "UrlFilterHotspot.h"
 
+#include <KIO/JobUiDelegate>
+#include <KIO/OpenUrlJob>
+
 #include <QAction>
 #include <QApplication>
 #include <QClipboard>
@@ -27,7 +30,6 @@
 
 #include <QIcon>
 #include <KLocalizedString>
-#include <KRun>
 #include <QMouseEvent>
 
 #include "UrlFilter.h"
@@ -91,7 +93,9 @@ void UrlFilterHotSpot::activate(QObject *object)
             url.prepend(QLatin1String("mailto:"));
         }
 
-        new KRun(QUrl(url), QApplication::activeWindow());
+        auto *job = new KIO::OpenUrlJob(QUrl(url));
+        job->setUiDelegate(new KIO::JobUiDelegate(KJobUiDelegate::AutoHandlingEnabled, QApplication::activeWindow()));
+        job->start();
     }
 }
 

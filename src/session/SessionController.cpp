@@ -41,7 +41,6 @@
 #include <KActionCollection>
 #include <KLocalizedString>
 #include <KMessageBox>
-#include <KRun>
 #include <KShell>
 #include <KToggleAction>
 #include <KSelectAction>
@@ -55,6 +54,8 @@
 #include <KCodecAction>
 #include <KNotification>
 #include <KIO/CommandLauncherJob>
+#include <KIO/JobUiDelegate>
+#include <KIO/OpenUrlJob>
 
 // Konsole
 #include "CopyInputDialog.h"
@@ -534,8 +535,10 @@ void SessionController::handleWebShortcutAction()
     KUriFilterData filterData(action->data().toString());
 
     if (KUriFilter::self()->filterUri(filterData, { QStringLiteral("kurisearchfilter") })) {
-        const QUrl& url = filterData.uri();
-        new KRun(url, QApplication::activeWindow());
+        const QUrl url = filterData.uri();
+        auto *job = new KIO::OpenUrlJob(url);
+        job->setUiDelegate(new KIO::JobUiDelegate(KJobUiDelegate::AutoHandlingEnabled, QApplication::activeWindow()));
+        job->start();
     }
 }
 
@@ -1059,12 +1062,9 @@ void SessionController::closeSession()
 void SessionController::openBrowser()
 {
     const QUrl currentUrl = url();
-
-    if (currentUrl.isLocalFile()) {
-        new KRun(currentUrl, QApplication::activeWindow(), true);
-    } else {
-        new KRun(QUrl::fromLocalFile(QDir::homePath()), QApplication::activeWindow(), true);
-    }
+    auto *job = new KIO::OpenUrlJob(currentUrl.isLocalFile() ? currentUrl : QUrl::fromLocalFile(QDir::homePath()));
+    job->setUiDelegate(new KIO::JobUiDelegate(KJobUiDelegate::AutoHandlingEnabled, QApplication::activeWindow()));
+    job->start();
 }
 
 void SessionController::copy()

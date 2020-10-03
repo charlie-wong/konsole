@@ -20,7 +20,9 @@
 
 #include "EscapeSequenceUrlFilterHotSpot.h"
 
-#include <KRun>
+#include <KIO/JobUiDelegate>
+#include <KIO/OpenUrlJob>
+
 #include <QApplication>
 #include <QMouseEvent>
 #include <QDebug>
@@ -47,5 +49,7 @@ void EscapeSequenceUrlHotSpot::activate(QObject *obj)
 {
     Q_UNUSED(obj)
 
-    new KRun(QUrl(_url), QApplication::activeWindow());
+    auto *job = new KIO::OpenUrlJob(QUrl(_url));
+    job->setUiDelegate(new KIO::JobUiDelegate(KJobUiDelegate::AutoHandlingEnabled, QApplication::activeWindow()));
+    job->start();
 }
